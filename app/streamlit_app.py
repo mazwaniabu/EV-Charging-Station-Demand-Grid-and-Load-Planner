@@ -382,7 +382,7 @@ try:
                     "Ports": st.column_config.NumberColumn("Ports", format="%d"),
                     "Power (kW)": st.column_config.NumberColumn("Power (kW)", format="%.1f"),
                     "Power Class": st.column_config.TextColumn("Power Class"),
-                    "DC Fast?": st.column_config.BooleanColumn("DC Fast?")
+                    "DC Fast?": st.column_config.CheckboxColumn("DC Fast?")
                 }
             )
         else:
