@@ -1,0 +1,14 @@
+state_province,total_stations,total_ports,installed_capacity_kw,coincidence_factor,coincident_peak_load_kw,grid_risk_level
+Selangor,144,234,6384.6,0.2523,1610.82,High
+W.P. Kuala Lumpur,166,261,6157.1,0.2495,1536.31,High
+Johor,63,130,4314.7,0.2702,1165.68,Medium
+Pulau Pinang,80,96,3859.0,0.2816,1086.89,Medium
+Perak,35,58,2955.0,0.305,901.41,Medium
+Melaka,23,40,1760.4,0.3265,574.75,Medium
+Terengganu,13,17,1115.4,0.394,439.5,Low
+Pahang,30,62,1399.4,0.3016,422.06,Low
+Negeri Sembilan,15,27,948.0,0.354,335.55,Low
+Kedah,14,27,816.0,0.354,288.83,Low
+Sarawak,22,22,771.4,0.3706,285.85,Low
+Kelantan,4,9,214.0,0.4667,99.87,Low
+Sabah,2,2,44.0,0.7657,33.69,Low
