@@ -79,25 +79,17 @@ def get_dataset():
 try:
     df = get_dataset()
     
-    # 5. Sidebar Filter Controls
+    # 5. Sidebar Layout (Focusing strictly on EV)
     st.sidebar.image("https://img.icons8.com/color/96/electric-car.png", width=80)
-    st.sidebar.markdown("### Filter Adoption Data")
-    
-    # Get available fuel types
-    all_fuels = sorted(df['fuel'].unique().tolist())
-    
-    # Pre-select 'electric' to focus on EV, but allow selecting others
-    selected_fuel = st.sidebar.selectbox(
-        "Select Fuel Type:",
-        options=all_fuels,
-        index=all_fuels.index('electric') if 'electric' in all_fuels else 0
+    st.sidebar.markdown("### EV Adoption Planner")
+    st.sidebar.info(
+        "This planner is focused exclusively on Electric Vehicles (EVs) "
+        "to assist Charging Point Operators in analyzing adoption and identifying "
+        "infrastructure coverage gaps in Malaysia."
     )
     
-    # Filter dataset
-    filtered_df = df[df['fuel'] == selected_fuel].copy()
-    
-    # Aggregated distribution
-    dist_df = filtered_df.groupby('state').size().reset_index(name='count')
+    # Aggregated distribution by state
+    dist_df = df.groupby('state').size().reset_index(name='count')
     dist_df = dist_df.sort_values(by='count', ascending=True).reset_index(drop=True) # Ascending for horizontal bar chart
     
     # 6. Metric Cards Row
@@ -106,34 +98,38 @@ try:
     with col1:
         st.markdown(f"""
             <div class="metric-card">
-                <div class="metric-lbl">Total Clean Registrations</div>
+                <div class="metric-lbl">Total Registered EVs</div>
                 <div class="metric-val">{len(df):,}</div>
             </div>
         """, unsafe_allow_html=True)
         
     with col2:
-        fuel_lbl = selected_fuel.replace('_', ' ').title()
-        pct_adoption = (len(filtered_df) / len(df)) * 100
-        st.markdown(f"""
-            <div class="metric-card">
-                <div class="metric-lbl">Total {fuel_lbl} Vehicles</div>
-                <div class="metric-val">{len(filtered_df):,} <span style="font-size: 1.2rem; color: #10B981; font-weight: 500;">({pct_adoption:.1f}%)</span></div>
-            </div>
-        """, unsafe_allow_html=True)
-        
-    with col3:
         # Get state with highest count
         if len(dist_df) > 0:
-            top_state = dist_df.sort_values(by='count', ascending=False).iloc[0]['state']
-            top_count = dist_df.sort_values(by='count', ascending=False).iloc[0]['count']
+            top_state_row = dist_df.sort_values(by='count', ascending=False).iloc[0]
+            top_state = top_state_row['state']
+            top_count = top_state_row['count']
             top_display = f"{top_state} ({top_count:,})"
         else:
             top_display = "N/A"
             
         st.markdown(f"""
             <div class="metric-card">
-                <div class="metric-lbl">Highest Adoption Location</div>
+                <div class="metric-lbl">Top EV Adoption Location</div>
                 <div class="metric-val" style="font-size: 1.8rem; line-height: 2.2rem; padding-top: 0.2rem;">{top_display}</div>
+            </div>
+        """, unsafe_allow_html=True)
+        
+    with col3:
+        if len(dist_df) > 0:
+            avg_evs = int(dist_df['count'].mean())
+        else:
+            avg_evs = 0
+            
+        st.markdown(f"""
+            <div class="metric-card">
+                <div class="metric-lbl">Average EVs per State</div>
+                <div class="metric-val">{avg_evs:,}</div>
             </div>
         """, unsafe_allow_html=True)
         
@@ -143,13 +139,13 @@ try:
     chart_col, table_col = st.columns([2, 1])
     
     with chart_col:
-        st.markdown(f"### {fuel_lbl} Distribution by State")
+        st.markdown("### EV Distribution by State")
         fig = px.bar(
             dist_df,
             x='count',
             y='state',
             orientation='h',
-            labels={'count': 'Number of Vehicles', 'state': 'State'},
+            labels={'count': 'Number of EVs', 'state': 'State'},
             color='count',
             color_continuous_scale=px.colors.sequential.Viridis
         )
@@ -163,10 +159,10 @@ try:
         st.plotly_chart(fig, use_container_width=True)
         
     with table_col:
-        st.markdown("### Tabular Data")
+        st.markdown("### EV Adoption Table")
         # Display sorted descending table
         desc_table = dist_df.sort_values(by='count', ascending=False).copy()
-        desc_table.columns = ['State', 'Vehicle Count']
+        desc_table.columns = ['State', 'EV Count']
         st.dataframe(
             desc_table,
             use_container_width=True,

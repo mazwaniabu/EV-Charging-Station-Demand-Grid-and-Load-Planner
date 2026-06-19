@@ -14,13 +14,13 @@ def test_data_cleaning_execution(tmp_path):
     """
     # Create simple mock raw data for cars
     mock_cars_data = pd.DataFrame({
-        'date_reg': ['2026-01-01', ' 2026-01-02 ', 'invalid-date', None],
-        'type': ['motokar', 'jip', 'motokar', 'motokar'],
-        'maker': ['BMW', 'Chery', 'BMW', 'BMW'],
-        'model': ['7 Series', 'Tiggo', '7 Series', '7 Series'],
-        'colour': ['black', 'grey', 'black', 'black'],
-        'fuel': ['hybrid_petrol', 'electric', 'petrol', 'petrol'],
-        'state': ['Johor', 'Selangor', 'Johor', 'Johor']
+        'date_reg': ['2026-01-01', ' 2026-01-02 ', 'invalid-date', '2026-01-03', '2026-01-01'],
+        'type': ['motokar', 'jip', 'motokar', 'motokar', 'motokar'],
+        'maker': ['BMW', 'Chery', 'BMW', 'BMW', 'BMW'],
+        'model': ['7 Series', 'Tiggo', '7 Series', '7 Series', '7 Series'],
+        'colour': ['black', 'grey', 'black', 'black', 'black'],
+        'fuel': ['electric', 'electric', 'electric', 'petrol', 'electric'],
+        'state': ['Johor', 'Selangor', 'Johor', 'Johor', 'Johor']
     })
     
     mock_cars_file = tmp_path / "mock_cars.csv"
@@ -33,7 +33,8 @@ def test_data_cleaning_execution(tmp_path):
     
     # Verify outputs
     assert os.path.exists(output_cars_file)
-    assert len(cleaned_cars_df) == 2  # The duplicate and missing/invalid date rows should be dropped/cleaned
+    assert len(cleaned_cars_df) == 2  # Dupes, invalid date, and non-electric rows removed
+    assert (cleaned_cars_df['fuel'] == 'electric').all()
     assert (cleaned_cars_df['date_reg'] == '2026-01-02').any()
     
     # Create simple mock raw data for charging stations
@@ -82,6 +83,7 @@ def test_processed_files_exist_and_are_valid():
     # Validate cars
     assert not cars_df.duplicated().any(), "Cleaned cars file contains duplicates"
     assert not cars_df['date_reg'].isnull().any(), "Cleaned cars contain null date_reg values"
+    assert (cars_df['fuel'] == 'electric').all(), "Cleaned cars contains non-EV records"
     
     # Validate stations
     assert not stations_df.duplicated().any(), "Cleaned stations file contains duplicates"
