@@ -9,15 +9,15 @@ from src.demand_analysis import (
 )
 
 def test_filter_ev_records():
-    """Verify that only 'electric' fuel records are retained."""
+    """Verify that electric and hybrid records are retained."""
     mock_data = pd.DataFrame({
-        'fuel': ['electric', 'petrol', 'ELECTRIC', 'diesel', ' electric '],
+        'fuel': ['electric', 'petrol', 'hybrid_petrol', 'diesel', ' hybrid_diesel '],
         'state': ['Johor', 'Selangor', 'Sabah', 'KL', 'Penang']
     })
     
     ev_df = filter_ev_records(mock_data)
     assert len(ev_df) == 3
-    # Check that electric and trimmed / case-insensitive inputs are correctly handled
+    # Check that electric and hybrid, trimmed / case-insensitive inputs are correctly handled
     assert set(ev_df['state']) == {'Johor', 'Sabah', 'Penang'}
 
 def test_calculate_ev_distribution():

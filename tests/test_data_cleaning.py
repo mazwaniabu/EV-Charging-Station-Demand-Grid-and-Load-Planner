@@ -19,7 +19,7 @@ def test_data_cleaning_execution(tmp_path):
         'maker': ['BMW', 'Chery', 'BMW', 'BMW', 'BMW'],
         'model': ['7 Series', 'Tiggo', '7 Series', '7 Series', '7 Series'],
         'colour': ['black', 'grey', 'black', 'black', 'black'],
-        'fuel': ['electric', 'electric', 'electric', 'petrol', 'electric'],
+        'fuel': ['electric', 'hybrid_petrol', 'electric', 'petrol', 'electric'],
         'state': ['Johor', 'Selangor', 'Johor', 'Johor', 'Johor']
     })
     
@@ -33,8 +33,8 @@ def test_data_cleaning_execution(tmp_path):
     
     # Verify outputs
     assert os.path.exists(output_cars_file)
-    assert len(cleaned_cars_df) == 2  # Dupes, invalid date, and non-electric rows removed
-    assert (cleaned_cars_df['fuel'] == 'electric').all()
+    assert len(cleaned_cars_df) == 2  # Dupes, invalid date, and non-EV/hybrid rows removed
+    assert cleaned_cars_df['fuel'].isin(['electric', 'hybrid_petrol', 'hybrid_diesel']).all()
     assert (cleaned_cars_df['date_reg'] == '2026-01-02').any()
     
     # Create simple mock raw data for charging stations
@@ -83,7 +83,7 @@ def test_processed_files_exist_and_are_valid():
     # Validate cars
     assert not cars_df.duplicated().any(), "Cleaned cars file contains duplicates"
     assert not cars_df['date_reg'].isnull().any(), "Cleaned cars contain null date_reg values"
-    assert (cars_df['fuel'] == 'electric').all(), "Cleaned cars contains non-EV records"
+    assert cars_df['fuel'].isin(['electric', 'hybrid_petrol', 'hybrid_diesel']).all(), "Cleaned cars contains non-EV/hybrid records"
     
     # Validate stations
     assert not stations_df.duplicated().any(), "Cleaned stations file contains duplicates"

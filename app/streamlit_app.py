@@ -79,13 +79,13 @@ def get_dataset():
 try:
     df = get_dataset()
     
-    # 5. Sidebar Layout (Focusing strictly on EV)
+    # 5. Sidebar Layout (Focusing on EV & Hybrid)
     st.sidebar.image("https://img.icons8.com/color/96/electric-car.png", width=80)
-    st.sidebar.markdown("### EV Adoption Planner")
+    st.sidebar.markdown("### EV & Hybrid Adoption Planner")
     st.sidebar.info(
-        "This planner is focused exclusively on Electric Vehicles (EVs) "
-        "to assist Charging Point Operators in analyzing adoption and identifying "
-        "infrastructure coverage gaps in Malaysia."
+        "This planner is focused on Electric Vehicles (EVs) and "
+        "Hybrid Vehicles (PHEV/HEV) to assist Charging Point Operators in "
+        "analyzing adoption and identifying infrastructure coverage gaps in Malaysia."
     )
     
     # Aggregated distribution by state
@@ -98,7 +98,7 @@ try:
     with col1:
         st.markdown(f"""
             <div class="metric-card">
-                <div class="metric-lbl">Total Registered EVs</div>
+                <div class="metric-lbl">Total EVs & Hybrids</div>
                 <div class="metric-val">{len(df):,}</div>
             </div>
         """, unsafe_allow_html=True)
@@ -115,7 +115,7 @@ try:
             
         st.markdown(f"""
             <div class="metric-card">
-                <div class="metric-lbl">Top EV Adoption Location</div>
+                <div class="metric-lbl">Top Adoption Location</div>
                 <div class="metric-val" style="font-size: 1.8rem; line-height: 2.2rem; padding-top: 0.2rem;">{top_display}</div>
             </div>
         """, unsafe_allow_html=True)
@@ -128,7 +128,7 @@ try:
             
         st.markdown(f"""
             <div class="metric-card">
-                <div class="metric-lbl">Average EVs per State</div>
+                <div class="metric-lbl">Average per State</div>
                 <div class="metric-val">{avg_evs:,}</div>
             </div>
         """, unsafe_allow_html=True)
@@ -139,13 +139,13 @@ try:
     chart_col, table_col = st.columns([2, 1])
     
     with chart_col:
-        st.markdown("### EV Distribution by State")
+        st.markdown("### EV & Hybrid Distribution by State")
         fig = px.bar(
             dist_df,
             x='count',
             y='state',
             orientation='h',
-            labels={'count': 'Number of EVs', 'state': 'State'},
+            labels={'count': 'Number of Vehicles', 'state': 'State'},
             color='count',
             color_continuous_scale=px.colors.sequential.Viridis
         )
@@ -159,10 +159,10 @@ try:
         st.plotly_chart(fig, use_container_width=True)
         
     with table_col:
-        st.markdown("### EV Adoption Table")
+        st.markdown("### Adoption Table")
         # Display sorted descending table
         desc_table = dist_df.sort_values(by='count', ascending=False).copy()
-        desc_table.columns = ['State', 'EV Count']
+        desc_table.columns = ['State', 'Vehicle Count']
         st.dataframe(
             desc_table,
             use_container_width=True,

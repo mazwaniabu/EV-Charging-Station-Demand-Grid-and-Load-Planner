@@ -11,12 +11,12 @@ def load_data(file_path):
     return pd.read_csv(file_path)
 
 def filter_ev_records(df):
-    """Filters the input DataFrame to only keep records where fuel is 'electric'."""
+    """Filters the input DataFrame to keep electric and hybrid records."""
     if 'fuel' not in df.columns:
         raise ValueError("Input DataFrame is missing required 'fuel' column")
     
-    # Filter for electric vehicles (case-insensitive strip just in case)
-    ev_df = df[df['fuel'].astype(str).str.strip().str.lower() == 'electric'].copy()
+    # Filter for electric and hybrid vehicles
+    ev_df = df[df['fuel'].astype(str).str.strip().str.lower().isin(['electric', 'hybrid_petrol', 'hybrid_diesel'])].copy()
     return ev_df
 
 def calculate_ev_distribution(df):

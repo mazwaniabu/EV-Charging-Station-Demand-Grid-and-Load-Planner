@@ -33,9 +33,9 @@ def clean_cars_dataset(input_path, output_path):
     # Drop rows with critical null fields
     df = df.dropna(subset=['date_reg', 'fuel', 'state'])
     
-    # Filter strictly for electric vehicles (EVs)
+    # Filter strictly for EV & Hybrid vehicles
     df['fuel'] = df['fuel'].astype(str).str.strip().str.lower()
-    df = df[df['fuel'] == 'electric']
+    df = df[df['fuel'].isin(['electric', 'hybrid_petrol', 'hybrid_diesel'])]
     
     # Drop duplicate rows
     df = df.drop_duplicates()
