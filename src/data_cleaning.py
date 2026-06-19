@@ -30,14 +30,19 @@ def clean_cars_dataset(input_path, output_path):
     for col in string_cols:
         df[col] = df[col].astype(str).str.strip()
 
+    # Drop rows with critical null fields
+    df = df.dropna(subset=['date_reg', 'fuel', 'state'])
+    
+    # Filter strictly for EV & Hybrid vehicles
+    df['fuel'] = df['fuel'].astype(str).str.strip().str.lower()
+    df = df[df['fuel'].isin(['electric', 'hybrid_petrol', 'hybrid_diesel'])]
+    
     # Drop duplicate rows
     df = df.drop_duplicates()
     
     # Parse date_reg to datetime
     df['date_reg'] = pd.to_datetime(df['date_reg'], errors='coerce')
-    
-    # Drop rows with critical null fields
-    df = df.dropna(subset=['date_reg', 'fuel', 'state'])
+    df = df.dropna(subset=['date_reg'])
     
     # Format date_reg to YYYY-MM-DD string representation
     df['date_reg'] = df['date_reg'].dt.strftime('%Y-%m-%d')
