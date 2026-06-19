@@ -64,3 +64,27 @@ ev-charging-demand-planner/
    ```bash
    streamlit run app/streamlit_app.py
    ```
+
+## Grid Load Simulation Model
+
+The planner implements a **Coincident Peak Load Simulation Engine** (found in `src/load_simulation.py`) to model the peak load stress of EV chargers on the utility grid for each state.
+
+- **Coincidence Factor ($CF$):** Estimates the probability of multiple chargers active at peak power simultaneously. It decreases non-linearly as the number of ports ($N$) in a state increases:
+  $$CF(N) = CF_{min} + (1 - CF_{min}) \times N^{-0.5}$$
+  Where $CF_{min}$ (default `0.20`, adjustable in the dashboard) represents the baseline minimum coincidence factor for massive networks.
+- **Coincident Peak Load:** Sum of all stations' power capacity in the state multiplied by the coincidence factor:
+  $$\text{Peak Load} = \text{Installed Capacity} \times CF(N)$$
+- **Risk Classification:**
+  - 🟢 **Low Risk**: Peak Load < 500 kW
+  - 🟡 **Medium Risk**: 500 kW <= Peak Load < 1,500 kW
+  - 🔴 **High Risk**: Peak Load >= 1,500 kW
+
+## Deployment Configuration
+
+This project is configured for production hosting (e.g. on Railway) using:
+- **`Procfile`**: Specifies the startup server command binding the app to the dynamic port allocation `$PORT`:
+  ```text
+  web: streamlit run app/streamlit_app.py --server.port $PORT --server.address 0.0.0.0
+  ```
+- **`requirements.txt`**: Standardized, deterministic dependencies ensuring stable production build runs.
+

@@ -201,7 +201,18 @@ try:
             st.dataframe(
                 desc_cars_table,
                 use_container_width=True,
-                hide_index=True
+                hide_index=True,
+                column_config={
+                    "State": st.column_config.TextColumn(
+                        "State",
+                        help="Malaysian state name."
+                    ),
+                    "Vehicle Count": st.column_config.NumberColumn(
+                        "Vehicle Count",
+                        format="%d",
+                        help="Clean registered EV & Hybrid vehicle count."
+                    )
+                }
             )
 
     # ==================== TAB 2: CHARGING INFRASTRUCTURE ====================
@@ -280,7 +291,18 @@ try:
             st.dataframe(
                 desc_stations_table,
                 use_container_width=True,
-                hide_index=True
+                hide_index=True,
+                column_config={
+                    "State": st.column_config.TextColumn(
+                        "State",
+                        help="Malaysian state name."
+                    ),
+                    "Station Count": st.column_config.NumberColumn(
+                        "Station Count",
+                        format="%d",
+                        help="Total operating EV charging stations."
+                    )
+                }
             )
 
     # ==================== TAB 3: GRID LOAD SIMULATION ====================
@@ -323,6 +345,18 @@ try:
                     <div class="metric-val">{avg_cf:.2%}</div>
                 </div>
             """, unsafe_allow_html=True)
+            
+        # Explainer container for grid risk levels
+        with st.expander("ℹ️ Understanding Grid Risk Levels & Coincidence Factors", expanded=False):
+            st.markdown("""
+                **Grid Risk Classification Levels:**
+                *   🔴 **High Risk** (>= 1,500 kW peak load): High concentration of charging demand. Likely requires local transformer/feeder capacity upgrades or advanced smart-charging load management.
+                *   🟡 **Medium Risk** (500 kW - 1,500 kW peak load): Moderate load density. Potential localized grid stress during coincident events; recommended for monitoring.
+                *   🟢 **Low Risk** (< 500 kW peak load): Light demand density. Easily accommodated within current default utility supply margins.
+                
+                **What is the Coincidence Factor?**
+                The coincidence factor represents the probability that multiple chargers draw peak power simultaneously. As the number of ports in a state grows, this factor decreases non-linearly (from 100% down to the user-defined baseline), since it is highly unlikely that all chargers operate at maximum capacity at the exact same moment.
+            """)
             
         st.markdown("---")
         
@@ -369,7 +403,14 @@ try:
             st.dataframe(
                 display_sim_df,
                 use_container_width=True,
-                hide_index=True
+                hide_index=True,
+                column_config={
+                    "State": st.column_config.TextColumn("State", help="Malaysian state name."),
+                    "Ports": st.column_config.NumberColumn("Ports", format="%d", help="Total charging ports available."),
+                    "Capacity (kW)": st.column_config.NumberColumn("Capacity (kW)", format="%.1f", help="Total raw capacity summed."),
+                    "Peak Load (kW)": st.column_config.NumberColumn("Peak Load (kW)", format="%.1f", help="Simulated coincident peak load."),
+                    "Risk Level": st.column_config.TextColumn("Risk Level", help="Grid load risk classification.")
+                }
             )
 
 except Exception as e:
