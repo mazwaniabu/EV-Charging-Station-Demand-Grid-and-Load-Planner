@@ -83,7 +83,7 @@ try:
     cars_df, stations_df = get_datasets()
     
     # 5. Sidebar Layout (Focusing on EV & Hybrid)
-    st.sidebar.markdown("<h1 style='text-align: center; margin-bottom: 10px;'>🔌⚡🚗</h1>", unsafe_allow_html=True)
+    st.sidebar.image("app/assets/electric-car.png", width=120)
     st.sidebar.markdown("### EV & Hybrid Adoption Planner")
     st.sidebar.info(
         "This planner is focused on Electric Vehicles (EVs) and "
