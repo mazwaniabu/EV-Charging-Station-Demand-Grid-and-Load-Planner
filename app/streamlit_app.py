@@ -10,6 +10,7 @@ if root_dir not in sys.path:
 
 from src.demand_analysis import load_data, CLEANED_CARS_PATH
 from src.data_cleaning import PROCESSED_STATIONS_PATH
+from src.load_simulation import run_simulation
 
 # 1. Page Configuration
 st.set_page_config(
@@ -91,8 +92,35 @@ try:
         "analyzing adoption and identifying infrastructure coverage gaps in Malaysia."
     )
     
-    # Create Tabs for the two segments
-    tab1, tab2 = st.tabs(["🚗 EV & Hybrid Adoption", "🔌 Charging Infrastructure"])
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("### ⚡ Grid Load Simulation Settings")
+    cf_min = st.sidebar.slider(
+        "Min Coincidence Factor (CF_min):",
+        min_value=0.05,
+        max_value=0.50,
+        value=0.20,
+        step=0.05,
+        help="Baseline coincidence factor for large numbers of chargers."
+    )
+    low_thresh = st.sidebar.slider(
+        "Low-Risk Threshold (kW):",
+        min_value=100,
+        max_value=1000,
+        value=500,
+        step=50,
+        help="Peak loads below this value are classified as Low risk."
+    )
+    high_thresh = st.sidebar.slider(
+        "High-Risk Threshold (kW):",
+        min_value=1000,
+        max_value=3000,
+        value=1500,
+        step=100,
+        help="Peak loads above this value are classified as High risk."
+    )
+    
+    # Create Tabs for the three segments
+    tab1, tab2, tab3 = st.tabs(["🚗 EV & Hybrid Adoption", "🔌 Charging Infrastructure", "⚡ Grid Load Simulation"])
     
     # ==================== TAB 1: ADOPTION ANALYTICS ====================
     with tab1:
@@ -251,6 +279,95 @@ try:
             desc_stations_table.columns = ['State', 'Station Count']
             st.dataframe(
                 desc_stations_table,
+                use_container_width=True,
+                hide_index=True
+            )
+
+    # ==================== TAB 3: GRID LOAD SIMULATION ====================
+    with tab3:
+        st.markdown("### ⚡ Coincident Grid Load Simulation")
+        st.markdown(
+            "This simulation estimates the peak power demand on the utility grid "
+            "based on the coincident use of chargers. As the number of ports in a state increases, "
+            "the probability of simultaneous peak load decreases (modeled via coincidence factor)."
+        )
+        
+        # Run simulation with sidebar parameters
+        sim_df = run_simulation(stations_df, cf_min=cf_min, low_threshold=low_thresh, high_threshold=high_thresh)
+        
+        # Calculate summary metrics for the simulation
+        total_peak_mw = sim_df['coincident_peak_load_kw'].sum() / 1000.0
+        high_risk_states = len(sim_df[sim_df['grid_risk_level'] == 'High'])
+        avg_cf = sim_df['coincidence_factor'].mean()
+        
+        # Metric Cards Row
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.markdown(f"""
+                <div class="metric-card">
+                    <div class="metric-lbl">Simulated Peak Grid Load</div>
+                    <div class="metric-val">{total_peak_mw:.2f} MW</div>
+                </div>
+            """, unsafe_allow_html=True)
+        with col2:
+            st.markdown(f"""
+                <div class="metric-card">
+                    <div class="metric-lbl">High-Risk States</div>
+                    <div class="metric-val" style="color: {'#EF4444' if high_risk_states > 0 else '#1F2937'};">{high_risk_states}</div>
+                </div>
+            """, unsafe_allow_html=True)
+        with col3:
+            st.markdown(f"""
+                <div class="metric-card">
+                    <div class="metric-lbl">Average Coincidence Factor</div>
+                    <div class="metric-val">{avg_cf:.2%}</div>
+                </div>
+            """, unsafe_allow_html=True)
+            
+        st.markdown("---")
+        
+        # Visualization Row
+        chart_col, table_col = st.columns([2, 1])
+        
+        with chart_col:
+            st.markdown("### Peak Grid Load & Risk Level by State")
+            
+            # Map risk level to premium color mapping
+            risk_colors = {'High': '#EF4444', 'Medium': '#F59E0B', 'Low': '#10B981'}
+            
+            # Use sort ascending for horizontal bar chart
+            sorted_sim_df = sim_df.sort_values(by='coincident_peak_load_kw', ascending=True).copy()
+            
+            fig = px.bar(
+                sorted_sim_df,
+                x='coincident_peak_load_kw',
+                y='state_province',
+                orientation='h',
+                labels={'coincident_peak_load_kw': 'Peak Load (kW)', 'state_province': 'State'},
+                color='grid_risk_level',
+                color_discrete_map=risk_colors,
+                category_orders={'grid_risk_level': ['Low', 'Medium', 'High']}
+            )
+            
+            fig.update_layout(
+                font_family="Outfit, sans-serif",
+                plot_bgcolor="rgba(0,0,0,0)",
+                paper_bgcolor="rgba(0,0,0,0)",
+                margin=dict(l=0, r=0, t=10, b=0),
+                legend=dict(title=dict(text='Grid Risk Level'), orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+            )
+            st.plotly_chart(fig, use_container_width=True)
+            
+        with table_col:
+            st.markdown("### Grid Risk Summary")
+            
+            display_sim_df = sim_df[[
+                'state_province', 'total_ports', 'installed_capacity_kw', 'coincident_peak_load_kw', 'grid_risk_level'
+            ]].copy()
+            display_sim_df.columns = ['State', 'Ports', 'Capacity (kW)', 'Peak Load (kW)', 'Risk Level']
+            
+            st.dataframe(
+                display_sim_df,
                 use_container_width=True,
                 hide_index=True
             )
