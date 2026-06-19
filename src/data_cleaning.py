@@ -1,5 +1,11 @@
 import os
+import sys
 import pandas as pd
+
+# Add the project root directory to the Python path
+root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if root_dir not in sys.path:
+    sys.path.append(root_dir)
 
 # Path definitions
 RAW_CARS_PATH = os.path.join("data", "raw", "cars_2026.csv")
@@ -101,11 +107,23 @@ def clean_charging_stations_dataset(input_path, output_path):
     # Validate ID is present
     df = df.dropna(subset=['id'])
 
+    # Reverse geocode state_province based on latitude, longitude, and city name
+    from src.utils import geocode_coordinate_to_state
+    df['state_province'] = df.apply(
+        lambda row: geocode_coordinate_to_state(
+            row['latitude'],
+            row['longitude'],
+            row.get('city'),
+            row.get('state_province')
+        ),
+        axis=1
+    )
+
     # Standardize power_kw
     df['power_kw'] = pd.to_numeric(df['power_kw'], errors='coerce')
 
     # Fill empty text fields with 'Unknown'
-    fill_unknown_cols = ['name', 'city', 'state_province', 'power_class']
+    fill_unknown_cols = ['name', 'city', 'power_class']
     for col in fill_unknown_cols:
         if col in df.columns:
             df[col] = df[col].fillna('Unknown').replace('', 'Unknown')
